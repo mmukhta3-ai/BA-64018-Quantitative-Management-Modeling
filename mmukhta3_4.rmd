@@ -1,0 +1,70 @@
+---
+title: "Assignment Mod 4"
+author: "Maheen Muhtar"
+date: "2025-09-22"
+output:
+  pdf_document: default
+---
+
+**1. Problem Formulation**
+Weigelt Corporation has 3 plants with excess capacity. They must decide how many Large (L), Medium (M), and Small (S) units to produce at each plant to maximize profit.
+
+Decision Variables:
+x1L, x1M, x1S = Units produced at Plant 1
+x2L, x2M, x2S = Units produced at Plant 2
+x3L, x3M, x3S = Units produced at Plant 3
+
+Objective Function:
+Maximize Z = 420(x1L+x2L+x3L) + 360(x1M+x2M+x3M) + 300(x1S+x2S+x3S)
+
+Constraints include:
+- Capacity per plant
+- Storage limits
+- Demand limits
+- Equal utilization of excess capacity
+- Non-negativity
+
+**2. R Code**
+```{r}
+library(lpSolve)
+
+# Objective Coefficients
+objective <- c(420,360,300, 420,360,300, 420,360,300)
+
+# Constraints
+constraints <- matrix(c(
+  1,1,1, 0,0,0, 0,0,0,   # Plant 1 capacity
+  0,0,0, 1,1,1, 0,0,0,   # Plant 2 capacity
+  0,0,0, 0,0,0, 1,1,1,   # Plant 3 capacity
+  20,15,12, 0,0,0, 0,0,0, # Plant 1 storage
+  0,0,0, 20,15,12, 0,0,0, # Plant 2 storage
+  0,0,0, 0,0,0, 20,15,12, # Plant 3 storage
+  1,0,0, 1,0,0, 1,0,0,   # Demand large
+  0,1,0, 0,1,0, 0,1,0,   # Demand medium
+  0,0,1, 0,0,1, 0,0,1    # Demand small
+), nrow=9, byrow=TRUE)
+
+rhs <- c(750, 900, 450, 13000, 12000, 5000, 900, 1200, 750)
+direction <- rep("<=", 9)
+
+# Solve LP
+solution <- lp("max", objective, constraints, direction, rhs)
+solution$objval 
+solution$solution   
+```
+
+**3. Results & Interpretation**
+The model produced the following results:
+
+- Optimal Profit: $708,000 per day
+- Production Plan:
+  - Plant 1: 350 Large, 400 Medium, 0 Small
+  - Plant 2: 0 Large, 400 Medium, 500 Small
+  - Plant 3: 0 Large, 133.33 Medium, 250 Small
+
+Interpretation:
+- Plant 1 focuses entirely on Large and Medium products.
+- Plant 2 balances Medium and Small production, but no Large units.
+- Plant 3 allocates remaining demand primarily to Medium and Small sizes.
+- The solution respects all constraints (capacity, storage, demand) and ensures optimal profit.
+
